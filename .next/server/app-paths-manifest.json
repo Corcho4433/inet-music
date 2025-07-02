@@ -1,0 +1,8 @@
+{
+  "/cart/page": "app/cart/page.js",
+  "/packages/page": "app/packages/page.js",
+  "/trip-builder/page": "app/trip-builder/page.js",
+  "/page": "app/page.js",
+  "/api/cart/route": "app/api/cart/route.js",
+  "/api/cart/[itemId]/route": "app/api/cart/[itemId]/route.js"
+}

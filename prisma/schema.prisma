@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  trips     Trip[]
+  cartItems CartItem[]
+
+  @@map("users")
+}
+
+model Package {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  destination String
+  duration    Int // days
+  price       Decimal   @db.Decimal(10, 2)
+  imageUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+
+  services  PackageService[]
+  cartItems CartItem[]
+
+  @@map("packages")
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  type        ServiceType
+  name        String
+  description String?
+  price       Decimal     @db.Decimal(10, 2)
+  metadata    Json // Store service-specific data
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+
+  packageServices PackageService[]
+  tripServices    TripService[]
+
+  @@map("services")
+}
+
+model PackageService {
+  id        String @id @default(cuid())
+  packageId String
+  serviceId String
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, serviceId])
+  @@map("package_services")
+}
+
+model Trip {
+  id        String     @id @default(cuid())
+  name      String
+  userId    String
+  status    TripStatus @default(DRAFT)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?  @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services  TripService[]
+  cartItems CartItem[]
+
+  @@map("trips")
+}
+
+model TripService {
+  id        String @id @default(cuid())
+  tripId    String
+  serviceId String
+  quantity  Int    @default(1)
+
+  trip    Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, serviceId])
+  @@map("trip_services")
+}
+
+model CartItem {
+  id        String       @id @default(cuid())
+  userId    String
+  itemType  CartItemType
+  packageId String?
+  tripId    String?
+  quantity  Int          @default(1)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime?    @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package Package? @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  trip    Trip?    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
+}
+
+enum ServiceType {
+  FLIGHT
+  LODGING
+  ACTIVITY
+  TRANSPORT
+}
+
+enum TripStatus {
+  DRAFT
+  CONFIRMED
+  PURCHASED
+}
+
+enum CartItemType {
+  PACKAGE
+  TRIP
+}
