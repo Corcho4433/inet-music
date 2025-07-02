@@ -1,10 +1,10 @@
-# ✈️ INET Travel
+# ✈️ Sterling Travel & Music
 
 Una plataforma de viajes diseñada para crear experiencias únicas y memorables.
 
 ## 🎯 Sobre el Negocio
 
-INET Travel es una plataforma que permite a los usuarios:
+Sterling Travel & Music es una plataforma que permite a los usuarios:
 - 🌍 Explorar paquetes de viajes predefinidos con servicios incluidos
 - 🏨 Crear viajes personalizados seleccionando servicios individuales
 - 🛒 Gestionar múltiples viajes en el carrito de compras
