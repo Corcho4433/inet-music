@@ -2,27 +2,36 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth"
 
+// GET /api/cart - Obtener el carrito del usuario
 export const GET = withAuth(async (request: Request, userId: string) => {
   try {
-    const cartItems = await prisma.cartItem.findMany({
+    const cart = await prisma.cartItem.findMany({
       where: {
         userId,
       },
       include: {
         package: {
           select: {
+            id: true,
             name: true,
+            description: true,
+            destination: true,
+            duration: true,
             price: true,
             imageUrl: true,
           },
         },
         trip: {
           select: {
+            id: true,
             name: true,
             services: {
               include: {
                 service: {
                   select: {
+                    id: true,
+                    name: true,
+                    type: true,
                     price: true,
                   },
                 },
@@ -33,7 +42,7 @@ export const GET = withAuth(async (request: Request, userId: string) => {
       },
     })
 
-    return NextResponse.json(cartItems)
+    return NextResponse.json(cart)
   } catch (error) {
     console.error("Error fetching cart:", error)
     return NextResponse.json(
@@ -43,46 +52,25 @@ export const GET = withAuth(async (request: Request, userId: string) => {
   }
 })
 
+// POST /api/cart - Agregar un item al carrito
 export const POST = withAuth(async (request: Request, userId: string) => {
   try {
-    const { itemType, packageId, tripId, quantity = 1 } = await request.json()
+    const body = await request.json()
+    const { packageId, tripId } = body
 
-    // Validar campos requeridos
-    if (!itemType || (!packageId && !tripId)) {
+    if (!packageId && !tripId) {
       return NextResponse.json(
-        { error: "Faltan campos requeridos" },
+        { error: "Se requiere packageId o tripId" },
         { status: 400 }
       )
     }
 
-    // Verificar si el item ya existe en el carrito
-    const existingItem = await prisma.cartItem.findFirst({
-      where: {
-        userId,
-        itemType,
-        ...(packageId ? { packageId } : { tripId }),
-      },
-    })
-
-    if (existingItem) {
-      // Actualizar cantidad si ya existe
-      const updatedItem = await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: {
-          quantity: existingItem.quantity + quantity,
-        },
-      })
-      return NextResponse.json(updatedItem)
-    }
-
-    // Crear nuevo item en el carrito
     const cartItem = await prisma.cartItem.create({
       data: {
         userId,
-        itemType,
         packageId,
         tripId,
-        quantity,
+        itemType: packageId ? "PACKAGE" : "TRIP",
       },
     })
 
@@ -91,6 +79,25 @@ export const POST = withAuth(async (request: Request, userId: string) => {
     console.error("Error adding to cart:", error)
     return NextResponse.json(
       { error: "Error al agregar al carrito" },
+      { status: 500 }
+    )
+  }
+})
+
+// DELETE /api/cart - Eliminar todos los items del carrito
+export const DELETE = withAuth(async (request: Request, userId: string) => {
+  try {
+    await prisma.cartItem.deleteMany({
+      where: {
+        userId,
+      },
+    })
+
+    return NextResponse.json({ message: "Carrito vaciado exitosamente" })
+  } catch (error) {
+    console.error("Error clearing cart:", error)
+    return NextResponse.json(
+      { error: "Error al vaciar el carrito" },
       { status: 500 }
     )
   }

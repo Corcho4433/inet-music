@@ -1,23 +1,59 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { jwtVerify } from "jose"
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "default_secret_key_change_this"
+)
 
 // Rutas protegidas que requieren autenticación
-const protectedPaths = ["/account", "/cart", "/checkout"]
+const protectedPaths = ["/account", "/cart", "/checkout", "/trip-builder"]
 
-export function middleware(request: NextRequest) {
+// Rutas de autenticación
+const authPaths = ["/login", "/register"]
+
+export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
+
+    // Si es una ruta de autenticación y el usuario ya está autenticado,
+    // redirigir a la página principal
+    if (authPaths.includes(path)) {
+        try {
+            const session = request.cookies.get("session")
+            if (session) {
+                await jwtVerify(session.value, JWT_SECRET)
+                // Si el usuario está intentando ir a login/register y ya está autenticado,
+                // verificar si hay una redirección solicitada
+                const redirectTo = request.nextUrl.searchParams.get("redirect")
+                if (redirectTo && !authPaths.includes(redirectTo)) {
+                    return NextResponse.redirect(new URL(redirectTo, request.url))
+                }
+                return NextResponse.redirect(new URL("/", request.url))
+            }
+        } catch {
+            // Si el token no es válido, permitir el acceso a las rutas de autenticación
+            // y eliminar la cookie inválida
+            const response = NextResponse.next()
+            response.cookies.delete("session")
+            return response
+        }
+    }
 
     // Verificar si la ruta actual requiere autenticación
     if (protectedPaths.some(prefix => path.startsWith(prefix))) {
-        // En un entorno real, aquí verificaríamos un token JWT o una sesión
-        // Por ahora, solo verificamos si existe el usuario en localStorage
-        const user = request.cookies.get("user")
+        try {
+            const session = request.cookies.get("session")
+            if (!session) {
+                throw new Error("No session cookie")
+            }
 
-        if (!user) {
-            // Redirigir a login si no hay usuario
-            const loginUrl = new URL("/login", request.url)
-            loginUrl.searchParams.set("redirect", path)
-            return NextResponse.redirect(loginUrl)
+            await jwtVerify(session.value, JWT_SECRET)
+            return NextResponse.next()
+        } catch (error) {
+            // Si hay un error con la sesión, eliminar la cookie
+            const response = NextResponse.redirect(new URL(`/login?redirect=${path}`, request.url))
+            response.cookies.delete("session")
+            return response
         }
     }
 
@@ -32,7 +68,8 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * - public folder
          */
-        "/((?!api|_next/static|_next/image|favicon.ico).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
     ],
 } 

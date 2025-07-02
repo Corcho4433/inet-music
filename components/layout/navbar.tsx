@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, User, ShoppingCart } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useToast } from '@/hooks/use-toast'
 
 interface UserInfo {
   id: string
@@ -21,14 +22,51 @@ export default function Navbar() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const pathname = usePathname()
   const isMobile = useIsMobile()
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
-    // Cargar información del usuario desde localStorage
-    const userStr = localStorage.getItem("user")
-    if (userStr) {
-      setUser(JSON.parse(userStr))
+    // Verificar si hay una sesión activa
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session')
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
+        }
+      } catch (error) {
+        console.error('Error checking session:', error)
+      }
     }
+
+    checkSession()
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al cerrar sesión')
+      }
+
+      setUser(null)
+      toast({
+        title: 'Sesión cerrada',
+        description: 'Has cerrado sesión correctamente',
+      })
+      router.push('/login')
+      router.refresh()
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Error al cerrar sesión',
+        variant: 'destructive',
+      })
+    }
+  }
 
   const links = [
     { href: "/", label: "Inicio" },

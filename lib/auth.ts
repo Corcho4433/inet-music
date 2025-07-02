@@ -1,27 +1,84 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { prisma } from "./prisma"
+import { cookies } from "next/headers"
+import bcrypt from "bcryptjs"
+import { SignJWT, jwtVerify } from "jose"
 
-// Simple auth - in production, use proper authentication
-export function getCurrentUser(request: NextRequest) {
-  const userId = request.headers.get("x-user-id") || "user1"
-  return userId
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "default_secret_key_change_this"
+)
+
+export async function hashPassword(password: string) {
+  return bcrypt.hash(password, 10)
 }
 
-type HandlerWithParams<T extends Record<string, string> = Record<string, string>> = (
-  req: NextRequest,
-  userId: string,
-  context: { params: T }
-) => Promise<Response>
+export async function verifyPassword(password: string, hashedPassword: string) {
+  return bcrypt.compare(password, hashedPassword)
+}
 
-export function withAuth<T extends Record<string, string> = Record<string, string>>(
-  handler: HandlerWithParams<T>
-) {
-  return async (req: NextRequest, context: { params: T }) => {
-    const userId = getCurrentUser(req)
-    return handler(req, userId, context)
+export async function createSession(user: { id: string; email: string }) {
+  const token = await new SignJWT({ userId: user.id })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("24h")
+    .sign(JWT_SECRET)
+
+  cookies().set("session", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24, // 24 hours
+    path: "/",
+  })
+
+  return token
+}
+
+export async function getSessionUser() {
+  const sessionCookie = cookies().get("session")
+  
+  if (!sessionCookie?.value) {
+    return null
+  }
+
+  try {
+    const { payload } = await jwtVerify(sessionCookie.value, JWT_SECRET)
+    const userId = payload.userId as string
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    })
+
+    return user
+  } catch (error) {
+    console.error("Error verifying session:", error)
+    return null
   }
 }
 
+export async function clearSession() {
+  cookies().delete("session")
+}
+
+export function withAuth(handler: (request: Request, userId: string) => Promise<Response>) {
+  return async (request: Request) => {
+    const user = await getSessionUser()
+
+    if (!user?.id) {
+      return NextResponse.json(
+        { error: "No autenticado" },
+        { status: 401 }
+      )
+    }
+
+    return handler(request, user.id)
+  }
+}
 
 export async function middleware(request: NextRequest) {
   // Rutas protegidas que requieren autenticación

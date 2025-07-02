@@ -16,7 +16,7 @@ model User {
   password  String // Hashed password
   name      String?
   avatar    String? // URL to avatar image
-  createdAt DateTime  @default(now())
+  createdAt DateTime?  @default(now())
   updatedAt DateTime? @updatedAt
 
   trips     Trip[]

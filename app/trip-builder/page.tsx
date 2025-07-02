@@ -55,13 +55,23 @@ export default function TripBuilderPage() {
           "x-user-id": "user1",
         },
       })
+      if (!response.ok) {
+        throw new Error("Failed to fetch trips")
+      }
       const data = await response.json()
-      setTrips(data)
-      if (data.length > 0 && !selectedTrip) {
-        setSelectedTrip(data[0])
+      const tripsArray = Array.isArray(data) ? data : []
+      setTrips(tripsArray)
+      if (tripsArray.length > 0 && !selectedTrip) {
+        setSelectedTrip(tripsArray[0])
       }
     } catch (error) {
       console.error("Error fetching trips:", error)
+      setTrips([])
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los viajes",
+        variant: "destructive",
+      })
     }
   }
 

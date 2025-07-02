@@ -3,6 +3,20 @@ INSERT INTO users (id, email, name) VALUES
 ('user1', 'john@example.com', 'John Doe'),
 ('user2', 'jane@example.com', 'Jane Smith');
 
+-- Insertar usuario de prueba si no existe
+INSERT INTO users (id, email, password, name, created_at)
+VALUES 
+  ('test-user-1', 'test@example.com', '$2a$10$test_hash_for_development', 'Test User', NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Insertar usuario de prueba
+INSERT INTO users (id, email, password, name, created_at)
+VALUES 
+  ('user1', 'user1@example.com', '$2a$10$test_hash_for_development', 'Usuario de Prueba', NOW())
+ON CONFLICT (id) DO UPDATE 
+SET email = EXCLUDED.email,
+    name = EXCLUDED.name;
+
 -- Insert sample packages
 INSERT INTO packages (id, name, description, destination, duration, price, "imageUrl") VALUES 
 ('pkg1', 'Paris Romance Package', 'A romantic 5-day getaway to Paris including flights, luxury hotel, and romantic activities', 'Paris, France', 5, 2499.99, '/placeholder.svg?height=300&width=400'),
@@ -45,3 +59,20 @@ INSERT INTO package_services (id, "packageId", "serviceId") VALUES
 ('ps10', 'pkg3', 'svc6'),
 ('ps11', 'pkg3', 'svc9'),
 ('ps12', 'pkg3', 'svc12');
+
+-- Limpiar datos existentes
+TRUNCATE users CASCADE;
+
+-- Insertar usuario de prueba
+INSERT INTO users (id, email, password, name, created_at)
+VALUES 
+  ('user1', 'user1@example.com', '$2a$10$test_hash_for_development', 'Usuario de Prueba', NOW());
+
+-- Asegurarse de que el usuario existe
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM users WHERE id = 'user1') THEN
+        RAISE EXCEPTION 'Failed to create test user';
+    END IF;
+END
+$$;

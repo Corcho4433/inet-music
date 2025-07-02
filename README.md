@@ -17,9 +17,6 @@ Sterling Travel & Music es una plataforma que permite a los usuarios:
 # Instalar dependencias
 pnpm install
 
-# Iniciar base de datos con Docker
-docker-compose up -d
-
 # Iniciar servidor de desarrollo
 pnpm dev
 ```

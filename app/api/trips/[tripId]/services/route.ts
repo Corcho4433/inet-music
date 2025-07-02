@@ -1,89 +1,88 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth"
 
-export const POST = withAuth(
-  async (request: NextRequest, userId: string, { params }: { params: { tripId: string } }) => {
-    try {
-      const { serviceId, quantity = 1 } = await request.json()
-      const { tripId } = params
+// POST /api/trips/[tripId]/services - Agregar un servicio al viaje
+export const POST = withAuth(async (request: Request, userId: string) => {
+  try {
+    // Extraer el tripId de la URL
+    const tripId = request.url.split('/trips/')[1].split('/services')[0]
+    const { serviceId } = await request.json()
 
-      // Verify trip belongs to user
-      const trip = await prisma.trip.findFirst({
-        where: {
-          id: tripId,
-          userId,
-        },
-      })
+    // Verificar que el viaje pertenece al usuario
+    const trip = await prisma.trip.findUnique({
+      where: {
+        id: tripId,
+        userId,
+      },
+    })
 
-      if (!trip) {
-        return NextResponse.json({ error: "Trip not found" }, { status: 404 })
-      }
+    if (!trip) {
+      return NextResponse.json(
+        { error: "Viaje no encontrado o no autorizado" },
+        { status: 404 }
+      )
+    }
 
-      const tripService = await prisma.tripService.upsert({
-        where: {
-          tripId_serviceId: {
-            tripId,
-            serviceId,
-          },
-        },
-        update: {
-          quantity,
-        },
-        create: {
+    // Agregar el servicio al viaje
+    const tripService = await prisma.tripService.create({
+      data: {
+        tripId,
+        serviceId,
+      },
+      include: {
+        service: true,
+      },
+    })
+
+    return NextResponse.json(tripService)
+  } catch (error) {
+    console.error("Error adding service to trip:", error)
+    return NextResponse.json(
+      { error: "Error al agregar el servicio al viaje" },
+      { status: 500 }
+    )
+  }
+})
+
+// DELETE /api/trips/[tripId]/services - Eliminar un servicio del viaje
+export const DELETE = withAuth(async (request: Request, userId: string) => {
+  try {
+    // Extraer el tripId de la URL
+    const tripId = request.url.split('/trips/')[1].split('/services')[0]
+    const { serviceId } = await request.json()
+
+    // Verificar que el viaje pertenece al usuario
+    const trip = await prisma.trip.findUnique({
+      where: {
+        id: tripId,
+        userId,
+      },
+    })
+
+    if (!trip) {
+      return NextResponse.json(
+        { error: "Viaje no encontrado o no autorizado" },
+        { status: 404 }
+      )
+    }
+
+    // Eliminar el servicio del viaje
+    await prisma.tripService.delete({
+      where: {
+        tripId_serviceId: {
           tripId,
           serviceId,
-          quantity,
         },
-        include: {
-          service: true,
-        },
-      })
+      },
+    })
 
-      return NextResponse.json(tripService)
-    } catch (error) {
-      console.error("Error adding service to trip:", error)
-      return NextResponse.json({ error: "Failed to add service to trip" }, { status: 500 })
-    }
-  },
-)
-
-export const DELETE = withAuth(
-  async (request: NextRequest, userId: string, { params }: { params: { tripId: string } }) => {
-    try {
-      const { searchParams } = new URL(request.url)
-      const serviceId = searchParams.get("serviceId")
-      const { tripId } = params
-
-      if (!serviceId) {
-        return NextResponse.json({ error: "Service ID required" }, { status: 400 })
-      }
-
-      // Verify trip belongs to user
-      const trip = await prisma.trip.findFirst({
-        where: {
-          id: tripId,
-          userId,
-        },
-      })
-
-      if (!trip) {
-        return NextResponse.json({ error: "Trip not found" }, { status: 404 })
-      }
-
-      await prisma.tripService.delete({
-        where: {
-          tripId_serviceId: {
-            tripId,
-            serviceId,
-          },
-        },
-      })
-
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      console.error("Error removing service from trip:", error)
-      return NextResponse.json({ error: "Failed to remove service from trip" }, { status: 500 })
-    }
-  },
-)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error removing service from trip:", error)
+    return NextResponse.json(
+      { error: "Error al eliminar el servicio del viaje" },
+      { status: 500 }
+    )
+  }
+})

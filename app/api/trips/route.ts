@@ -23,7 +23,7 @@ export const GET = withAuth(async (request: NextRequest, userId: string) => {
     return NextResponse.json(trips)
   } catch (error) {
     console.error("Error fetching trips:", error)
-    return NextResponse.json({ error: "Failed to fetch trips" }, { status: 500 })
+    return NextResponse.json([], { status: 500 })
   }
 })
 

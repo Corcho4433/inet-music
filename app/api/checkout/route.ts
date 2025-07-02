@@ -1,31 +1,22 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth"
+import { Decimal } from "@prisma/client/runtime/library"
 
 export const POST = withAuth(async (request: Request, userId: string) => {
     try {
-        // Obtener items del carrito
+        // Obtener los items del carrito del usuario
         const cartItems = await prisma.cartItem.findMany({
             where: {
                 userId,
             },
             include: {
-                package: {
-                    select: {
-                        name: true,
-                        price: true,
-                    },
-                },
+                package: true,
                 trip: {
-                    select: {
-                        name: true,
+                    include: {
                         services: {
                             include: {
-                                service: {
-                                    select: {
-                                        price: true,
-                                    },
-                                },
+                                service: true,
                             },
                         },
                     },
@@ -40,38 +31,20 @@ export const POST = withAuth(async (request: Request, userId: string) => {
             )
         }
 
-        // Calcular total y preparar items de la orden
-        let total = 0
-        const orderItems = cartItems.map((item) => {
-            let price = 0
-            let name = ""
-
+        // Calcular el total de la orden
+        let total = new Decimal(0)
+        for (const item of cartItems) {
             if (item.package) {
-                price = Number(item.package.price)
-                name = item.package.name
-            } else if (item.trip) {
-                // Sumar precios de todos los servicios del viaje
-                price = item.trip.services.reduce(
-                    (acc, service) => acc + Number(service.service.price),
-                    0
+                total = total.add(item.package.price)
+            }
+            if (item.trip) {
+                const tripTotal = item.trip.services.reduce(
+                    (acc, service) => acc.add(service.service.price),
+                    new Decimal(0)
                 )
-                name = item.trip.name
+                total = total.add(tripTotal)
             }
-
-            total += price * item.quantity
-
-            return {
-                itemType: item.itemType,
-                packageId: item.packageId,
-                tripId: item.tripId,
-                quantity: item.quantity,
-                price,
-                metadata: {
-                    name,
-                    originalPrice: price,
-                },
-            }
-        })
+        }
 
         // Crear la orden
         const order = await prisma.order.create({
@@ -79,11 +52,41 @@ export const POST = withAuth(async (request: Request, userId: string) => {
                 userId,
                 total,
                 items: {
-                    create: orderItems,
+                    create: cartItems.map((item) => ({
+                        packageId: item.packageId,
+                        tripId: item.tripId,
+                        itemType: item.itemType,
+                        price: item.package?.price || 
+                            new Decimal(item.trip?.services.reduce(
+                                (acc, service) => acc.add(service.service.price),
+                                new Decimal(0)
+                            ) || 0),
+                        metadata: {
+                            name: item.package?.name || item.trip?.name || "",
+                            originalPrice: item.package?.price || 
+                                new Decimal(item.trip?.services.reduce(
+                                    (acc, service) => acc.add(service.service.price),
+                                    new Decimal(0)
+                                ) || 0),
+                        },
+                    })),
                 },
             },
             include: {
-                items: true,
+                items: {
+                    include: {
+                        package: true,
+                        trip: {
+                            include: {
+                                services: {
+                                    include: {
+                                        service: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         })
 
@@ -98,7 +101,7 @@ export const POST = withAuth(async (request: Request, userId: string) => {
     } catch (error) {
         console.error("Error processing checkout:", error)
         return NextResponse.json(
-            { error: "Error al procesar el pago" },
+            { error: "Error al procesar el checkout" },
             { status: 500 }
         )
     }

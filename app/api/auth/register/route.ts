@@ -29,24 +29,25 @@ export async function POST(request: Request) {
         // Hash de la contraseña
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        // Crear usuario
+        // Crear el usuario
         const user = await prisma.user.create({
             data: {
                 email,
                 password: hashedPassword,
-                name: name || null,
-                avatar: `/placeholder-user.jpg`,
+                name,
+            },
+            select: {
+                id: true,
+                email: true,
+                name: true,
             },
         })
 
-        // No enviar la contraseña al cliente
-        const { password: _, ...userWithoutPassword } = user
-
-        return NextResponse.json(userWithoutPassword)
+        return NextResponse.json(user)
     } catch (error) {
-        console.error("Error in registration:", error)
+        console.error("Error registering user:", error)
         return NextResponse.json(
-            { error: "Error al registrar usuario" },
+            { error: "Error al registrar el usuario" },
             { status: 500 }
         )
     }

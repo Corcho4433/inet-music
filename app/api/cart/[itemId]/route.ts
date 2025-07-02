@@ -4,17 +4,11 @@ import { withAuth } from "@/lib/auth"
 
 export const DELETE = withAuth(async (request: Request, userId: string) => {
   try {
-    const itemId = request.url.split("/").pop()
-
-    if (!itemId) {
-      return NextResponse.json(
-        { error: "ID del item no proporcionado" },
-        { status: 400 }
-      )
-    }
+    // Extraer el itemId de la URL
+    const itemId = request.url.split('/cart/')[1]
 
     // Verificar que el item pertenece al usuario
-    const cartItem = await prisma.cartItem.findFirst({
+    const cartItem = await prisma.cartItem.findUnique({
       where: {
         id: itemId,
         userId,
@@ -23,7 +17,7 @@ export const DELETE = withAuth(async (request: Request, userId: string) => {
 
     if (!cartItem) {
       return NextResponse.json(
-        { error: "Item no encontrado" },
+        { error: "Item no encontrado o no autorizado" },
         { status: 404 }
       )
     }
@@ -37,7 +31,7 @@ export const DELETE = withAuth(async (request: Request, userId: string) => {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error deleting cart item:", error)
+    console.error("Error removing item from cart:", error)
     return NextResponse.json(
       { error: "Error al eliminar el item del carrito" },
       { status: 500 }

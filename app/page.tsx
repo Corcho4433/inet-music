@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plane, MapPin, Calendar, Users } from "lucide-react"
@@ -9,6 +10,16 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
+          <div className="flex justify-center mb-8">
+            <Image
+              src="/icono.png"
+              alt="Sterling Travel Icon"
+              width={150}
+              height={150}
+              className="object-contain"
+              priority
+            />
+          </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-6">Plataforma de Viajes Sterling</h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Descubre experiencias de viaje increíbles con nuestros paquetes seleccionados o construye tu viaje personalizado perfecto. ¡Tu

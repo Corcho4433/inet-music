@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import { verifyPassword, createSession } from "@/lib/auth"
 
 export async function POST(request: Request) {
     try {
@@ -14,12 +14,17 @@ export async function POST(request: Request) {
             )
         }
 
-        // Buscar usuario
+        // Buscar usuario por email
         const user = await prisma.user.findUnique({
             where: { email },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+            },
         })
 
-        if (!user) {
+        if (!user || !user.password) {
             return NextResponse.json(
                 { error: "Credenciales inválidas" },
                 { status: 401 }
@@ -27,19 +32,22 @@ export async function POST(request: Request) {
         }
 
         // Verificar contraseña
-        const isValidPassword = await bcrypt.compare(password, user.password)
+        const isValid = await verifyPassword(password, user.password)
 
-        if (!isValidPassword) {
+        if (!isValid) {
             return NextResponse.json(
                 { error: "Credenciales inválidas" },
                 { status: 401 }
             )
         }
 
-        // No enviar la contraseña al cliente
-        const { password: _, ...userWithoutPassword } = user
+        // Crear sesión
+        await createSession(user)
 
-        return NextResponse.json(userWithoutPassword)
+        return NextResponse.json({
+            id: user.id,
+            email: user.email,
+        })
     } catch (error) {
         console.error("Error in login:", error)
         return NextResponse.json(
