@@ -2,10 +2,14 @@ import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth"
 
-export const DELETE = withAuth(
-  async (request: NextRequest, userId: string, { params }: { params: { itemId: string } }) => {
+type CartParams = {
+  itemId: string
+}
+
+export const DELETE = withAuth<CartParams>(
+  async (request: NextRequest, userId: string, context: { params: CartParams }) => {
     try {
-      const { itemId } = params
+      const { itemId } = context.params
 
       // Verify cart item belongs to user
       const cartItem = await prisma.cartItem.findFirst({

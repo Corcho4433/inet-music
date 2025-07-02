@@ -212,7 +212,7 @@ export default function PackagesPage() {
 
                 <Button className="w-full mt-4" onClick={() => addToCart(pkg.id)}>
                   <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
+                  Añadir al Carrito
                 </Button>
               </div>
             </CardContent>
@@ -222,7 +222,7 @@ export default function PackagesPage() {
 
       {packages.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No packages found matching your criteria.</p>
+          <p className="text-gray-500">No se encontraron paquetes que coincidan con tus criterios.</p>
         </div>
       )}
     </div>

@@ -65,7 +65,7 @@ export default function CartPage() {
       console.error("Error fetching cart:", error)
       toast({
         title: "Error",
-        description: "Failed to load cart",
+        description: "Error al cargar el carrito",
         variant: "destructive",
       })
     } finally {
@@ -85,15 +85,15 @@ export default function CartPage() {
       if (response.ok) {
         setCartItems(cartItems.filter((item) => item.id !== itemId))
         toast({
-          title: "Success",
-          description: "Item removed from cart",
+          title: "Éxito",
+          description: "Artículo eliminado del carrito",
         })
       }
     } catch (error) {
       console.error("Error removing from cart:", error)
       toast({
         title: "Error",
-        description: "Failed to remove item from cart",
+        description: "Error al eliminar el artículo del carrito",
         variant: "destructive",
       })
     }
@@ -131,7 +131,7 @@ export default function CartPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">Loading cart...</div>
+        <div className="text-center">Cargando carrito...</div>
       </div>
     )
   }
@@ -139,22 +139,22 @@ export default function CartPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Shopping Cart</h1>
-        <p className="text-gray-600">Review your selected packages and custom trips before checkout.</p>
+        <h1 className="text-3xl font-bold mb-4">Carrito de Compras</h1>
+        <p className="text-gray-600">Revisa tus paquetes y viajes personalizados antes de finalizar la compra.</p>
       </div>
 
       {cartItems.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
             <ShoppingCart className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Your cart is empty</h3>
-            <p className="text-gray-600 mb-6">Start by browsing our packages or building a custom trip.</p>
+            <h3 className="text-xl font-semibold mb-2">Tu carrito está vacío</h3>
+            <p className="text-gray-600 mb-6">Comienza explorando nuestros paquetes o creando un viaje personalizado.</p>
             <div className="flex gap-4 justify-center">
               <Button asChild>
-                <a href="/packages">Browse Packages</a>
+                <a href="/packages">Ver Paquetes</a>
               </Button>
               <Button variant="outline" asChild>
-                <a href="/trip-builder">Build Trip</a>
+                <a href="/trip-builder">Crear Viaje</a>
               </Button>
             </div>
           </CardContent>
@@ -168,7 +168,7 @@ export default function CartPage() {
               <div>
                 <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
                   <Package className="h-6 w-6" />
-                  Travel Packages
+                  Paquetes
                 </h2>
                 <div className="space-y-4">
                   {groupedItems.PACKAGE.map((item) => (
@@ -222,7 +222,7 @@ export default function CartPage() {
               <div>
                 <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
                   <MapPin className="h-6 w-6" />
-                  Custom Trips
+                  Viajes Personalizados
                 </h2>
                 <div className="space-y-4">
                   {groupedItems.TRIP.map((item) => (
@@ -270,7 +270,7 @@ export default function CartPage() {
           <div className="lg:col-span-1">
             <Card className="sticky top-4">
               <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
+                <CardTitle>Resumen del Pedido</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -290,10 +290,10 @@ export default function CartPage() {
                 </div>
 
                 <Button className="w-full" size="lg">
-                  Proceed to Checkout
+                  Proceder al Pago
                 </Button>
 
-                <p className="text-xs text-gray-500 text-center">Secure checkout powered by Sterling Travel</p>
+                <p className="text-xs text-gray-500 text-center">Pago seguro proporcionado por Sterling Travel</p>
               </CardContent>
             </Card>
           </div>

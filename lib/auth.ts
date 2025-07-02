@@ -6,9 +6,17 @@ export function getCurrentUser(request: NextRequest) {
   return userId
 }
 
-export function withAuth(handler: (req: NextRequest, userId: string) => Promise<Response>) {
-  return async (req: NextRequest) => {
+type HandlerWithParams<T extends Record<string, string> = Record<string, string>> = (
+  req: NextRequest,
+  userId: string,
+  context: { params: T }
+) => Promise<Response>
+
+export function withAuth<T extends Record<string, string> = Record<string, string>>(
+  handler: HandlerWithParams<T>
+) {
+  return async (req: NextRequest, context: { params: T }) => {
     const userId = getCurrentUser(req)
-    return handler(req, userId)
+    return handler(req, userId, context)
   }
 }

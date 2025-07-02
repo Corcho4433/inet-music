@@ -100,15 +100,15 @@ export default function TripBuilderPage() {
         setSelectedTrip(newTrip)
         setNewTripName("")
         toast({
-          title: "Success",
-          description: "New trip created!",
+          title: "Éxito",
+          description: "¡Nuevo viaje creado!",
         })
       }
     } catch (error) {
       console.error("Error creating trip:", error)
       toast({
         title: "Error",
-        description: "Failed to create trip",
+        description: "Error al crear el viaje",
         variant: "destructive",
       })
     }
@@ -130,15 +130,15 @@ export default function TripBuilderPage() {
       if (response.ok) {
         await fetchTrips()
         toast({
-          title: "Success",
-          description: "Service added to trip!",
+          title: "Éxito",
+          description: "¡Servicio añadido al viaje!",
         })
       }
     } catch (error) {
       console.error("Error adding service:", error)
       toast({
         title: "Error",
-        description: "Failed to add service to trip",
+        description: "Error al añadir el servicio al viaje",
         variant: "destructive",
       })
     }
@@ -158,15 +158,15 @@ export default function TripBuilderPage() {
       if (response.ok) {
         await fetchTrips()
         toast({
-          title: "Success",
-          description: "Service removed from trip!",
+          title: "Éxito",
+          description: "¡Servicio eliminado del viaje!",
         })
       }
     } catch (error) {
       console.error("Error removing service:", error)
       toast({
         title: "Error",
-        description: "Failed to remove service from trip",
+        description: "Error al eliminar el servicio del viaje",
         variant: "destructive",
       })
     }
@@ -191,15 +191,15 @@ export default function TripBuilderPage() {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Trip added to cart!",
+          title: "Éxito",
+          description: "¡Viaje añadido al carrito!",
         })
       }
     } catch (error) {
       console.error("Error adding trip to cart:", error)
       toast({
         title: "Error",
-        description: "Failed to add trip to cart",
+        description: "Error al añadir el viaje al carrito",
         variant: "destructive",
       })
     }
@@ -214,7 +214,7 @@ export default function TripBuilderPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">Loading trip builder...</div>
+        <div className="text-center">Cargando constructor de viajes...</div>
       </div>
     )
   }
@@ -222,8 +222,8 @@ export default function TripBuilderPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Trip Builder</h1>
-        <p className="text-gray-600 mb-6">Create your perfect custom trip by selecting individual services.</p>
+        <h1 className="text-3xl font-bold mb-4">Constructor de Viajes</h1>
+        <p className="text-gray-600 mb-6">Crea tu viaje personalizado seleccionando servicios individuales.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -231,17 +231,17 @@ export default function TripBuilderPage() {
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Your Trips</CardTitle>
-              <CardDescription>Manage your custom trips</CardDescription>
+              <CardTitle>Tus Viajes</CardTitle>
+              <CardDescription>Gestiona tus viajes personalizados</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Create New Trip */}
               <div className="space-y-2">
-                <Label htmlFor="tripName">New Trip Name</Label>
+                <Label htmlFor="tripName">Nombre del Nuevo Viaje</Label>
                 <div className="flex gap-2">
                   <Input
                     id="tripName"
-                    placeholder="Enter trip name"
+                    placeholder="Ingresa el nombre del viaje"
                     value={newTripName}
                     onChange={(e) => setNewTripName(e.target.value)}
                   />
@@ -256,14 +256,13 @@ export default function TripBuilderPage() {
                 {trips.map((trip) => (
                   <div
                     key={trip.id}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedTrip?.id === trip.id ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
-                    }`}
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedTrip?.id === trip.id ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
+                      }`}
                     onClick={() => setSelectedTrip(trip)}
                   >
                     <div className="font-medium">{trip.name}</div>
                     <div className="text-sm text-gray-500">
-                      {trip.services.length} services • ${getTripTotal(trip).toLocaleString()}
+                      {trip.services.length} servicios • ${getTripTotal(trip).toLocaleString()}
                     </div>
                   </div>
                 ))}
@@ -272,7 +271,7 @@ export default function TripBuilderPage() {
               {selectedTrip && (
                 <Button onClick={addTripToCart} className="w-full">
                   <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add Trip to Cart
+                  Añadir al Carrito
                 </Button>
               )}
             </CardContent>
@@ -283,7 +282,7 @@ export default function TripBuilderPage() {
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle>{selectedTrip.name}</CardTitle>
-                <CardDescription>Trip services</CardDescription>
+                <CardDescription>Servicios del viaje</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -299,12 +298,12 @@ export default function TripBuilderPage() {
                           </div>
                         </div>
                         <Button size="sm" variant="outline" onClick={() => removeServiceFromTrip(item.service.id)}>
-                          Remove
+                          Eliminar
                         </Button>
                       </div>
                     )
                   })}
-                  {selectedTrip.services.length === 0 && <p className="text-gray-500 text-sm">No services added yet</p>}
+                  {selectedTrip.services.length === 0 && <p className="text-gray-500 text-sm">No hay servicios añadidos aún</p>}
                   <div className="pt-2 border-t font-medium">Total: ${getTripTotal(selectedTrip).toLocaleString()}</div>
                 </div>
               </CardContent>
@@ -316,16 +315,16 @@ export default function TripBuilderPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Browse Services</CardTitle>
-              <CardDescription>Add services to your trip</CardDescription>
+              <CardTitle>Explorar Servicios</CardTitle>
+              <CardDescription>Añade servicios a tu viaje</CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={serviceType} onValueChange={setServiceType}>
                 <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="FLIGHT">Flights</TabsTrigger>
-                  <TabsTrigger value="LODGING">Hotels</TabsTrigger>
-                  <TabsTrigger value="ACTIVITY">Activities</TabsTrigger>
-                  <TabsTrigger value="TRANSPORT">Transport</TabsTrigger>
+                  <TabsTrigger value="FLIGHT">Vuelos</TabsTrigger>
+                  <TabsTrigger value="LODGING">Hoteles</TabsTrigger>
+                  <TabsTrigger value="ACTIVITY">Actividades</TabsTrigger>
+                  <TabsTrigger value="TRANSPORT">Transporte</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value={serviceType} className="mt-6">
@@ -346,7 +345,7 @@ export default function TripBuilderPage() {
                               <div className="text-2xl font-bold text-green-600">${service.price.toLocaleString()}</div>
                               <Button onClick={() => addServiceToTrip(service.id)} disabled={!selectedTrip}>
                                 <Plus className="h-4 w-4 mr-2" />
-                                Add
+                                Añadir
                               </Button>
                             </div>
 
@@ -372,7 +371,7 @@ export default function TripBuilderPage() {
                               {service.type === "ACTIVITY" && service.metadata && (
                                 <>
                                   <div>{service.metadata.location}</div>
-                                  <div>Duration: {service.metadata.duration}</div>
+                                  <div>Duración: {service.metadata.duration}</div>
                                 </>
                               )}
                               {service.type === "TRANSPORT" && service.metadata && (
