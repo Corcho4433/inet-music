@@ -1,113 +1,150 @@
 "use client"
 
-import Link from "next/link"
 import { useState, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Menu, X } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu, User, ShoppingCart } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-export function Navbar() {
-  const [cartCount, setCartCount] = useState(0)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+interface UserInfo {
+  id: string
+  email: string
+  name: string | null
+  avatar: string | null
+}
+
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const pathname = usePathname()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
-    fetchCartCount()
+    // Cargar información del usuario desde localStorage
+    const userStr = localStorage.getItem("user")
+    if (userStr) {
+      setUser(JSON.parse(userStr))
+    }
   }, [])
 
-  const fetchCartCount = async () => {
-    try {
-      const response = await fetch("/api/cart", {
-        headers: {
-          "x-user-id": "user1",
-        },
-      })
-      const data = await response.json()
-      setCartCount(data.length)
-    } catch (error) {
-      console.error("Error fetching cart count:", error)
-    }
-  }
-
-  const navigation = [
-    { name: "Inicio", href: "/" },
-    { name: "Paquetes", href: "/packages" },
-    { name: "Crear Viaje", href: "/trip-builder" },
-    { name: "Carrito", href: "/cart" },
+  const links = [
+    { href: "/", label: "Inicio" },
+    { href: "/packages", label: "Paquetes" },
+    { href: "/trip-builder", label: "Arma tu Viaje" },
   ]
 
+  const renderLinks = () => (
+    <>
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className={`text-sm font-medium transition-colors hover:text-primary ${pathname === link.href ? "text-primary" : "text-gray-500"
+            }`}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </>
+  )
+
+  const renderUserSection = () => (
+    <div className="flex items-center gap-4">
+      <Link href="/cart">
+        <Button variant="ghost" size="icon">
+          <ShoppingCart className="h-5 w-5" />
+        </Button>
+      </Link>
+      {user ? (
+        <Link href="/account">
+          <Button variant="ghost" size="icon" className="relative">
+            {user.avatar ? (
+              <Image
+                src={user.avatar}
+                alt={user.name || "Usuario"}
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+            ) : (
+              <User className="h-5 w-5" />
+            )}
+          </Button>
+        </Link>
+      ) : (
+        <Link href="/login">
+          <Button variant="outline">Iniciar Sesión</Button>
+        </Link>
+      )}
+    </div>
+  )
+
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0">
-              <span className="text-2xl font-bold text-blue-600">Sterling Travel</span>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                {item.name === "Carrito" ? (
-                  <div className="flex items-center gap-2">
-                    <ShoppingCart className="h-4 w-4" />
-                    Carrito
-                    {cartCount > 0 && (
-                      <Badge variant="destructive" className="text-xs">
-                        {cartCount}
-                      </Badge>
-                    )}
-                  </div>
-                ) : (
-                  item.name
-                )}
-              </Link>
-            ))}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <Button variant="ghost" size="sm" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-          </div>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Image src="/placeholder-logo.svg" alt="Logo" width={32} height={32} />
+            <span className="hidden font-bold sm:inline-block">InetViaje</span>
+          </Link>
         </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.name === "Carrito" ? (
-                    <div className="flex items-center gap-2">
-                      <ShoppingCart className="h-4 w-4" />
-                      Carrito
-                      {cartCount > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {cartCount}
-                        </Badge>
-                      )}
-                    </div>
-                  ) : (
-                    item.name
-                  )}
-                </Link>
-              ))}
+        {isMobile ? (
+          <>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[240px] sm:w-[280px]">
+                <nav className="flex flex-col gap-4">
+                  {renderLinks()}
+                  <div className="mt-4">
+                    {user ? (
+                      <Link href="/account" className="flex items-center gap-2 py-2">
+                        {user.avatar ? (
+                          <Image
+                            src={user.avatar}
+                            alt={user.name || "Usuario"}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <User className="h-5 w-5" />
+                        )}
+                        <span>{user.name || "Mi Cuenta"}</span>
+                      </Link>
+                    ) : (
+                      <Link href="/login">
+                        <Button className="w-full">Iniciar Sesión</Button>
+                      </Link>
+                    )}
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+            <div className="flex flex-1 items-center justify-end space-x-2">
+              <Link href="/cart">
+                <Button variant="ghost" size="icon">
+                  <ShoppingCart className="h-5 w-5" />
+                </Button>
+              </Link>
             </div>
-          </div>
+          </>
+        ) : (
+          <>
+            <nav className="flex items-center space-x-6 text-sm font-medium flex-1">
+              {renderLinks()}
+            </nav>
+            {renderUserSection()}
+          </>
         )}
       </div>
-    </nav>
+    </header>
   )
 }
