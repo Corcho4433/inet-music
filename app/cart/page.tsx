@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -47,6 +48,7 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
     fetchCart()
@@ -127,6 +129,12 @@ export default function CartPage() {
     },
     {} as Record<string, CartItem[]>,
   )
+
+  const handleProceedToCheckout = () => {
+    if (cartItems.length > 0) {
+      router.push("/checkout")
+    }
+  }
 
   if (loading) {
     return (
@@ -289,7 +297,7 @@ export default function CartPage() {
                   <span>${getTotalPrice().toLocaleString()}</span>
                 </div>
 
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" onClick={handleProceedToCheckout}>
                   Proceder al Pago
                 </Button>
 
